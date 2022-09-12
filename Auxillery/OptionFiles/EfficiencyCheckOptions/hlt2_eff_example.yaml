@@ -1,0 +1,43 @@
+# HltEfficiencyChecker "wizard" example for Hlt2 job
+annotated_decay_descriptor:
+    "${Bs}[B_s0 => ( J/psi(1S) => ${mup}mu+ ${mum}mu- ) ( phi(1020) => ${Kp}K+ ${Km}K- )]CC"
+ntuple_path: &NTUPLE hlt2_eff_ntuple.root
+job:
+    trigger_level: 2
+    evt_max: 100
+    input_type: ROOT
+    lines_from: Hlt2Conf.lines.Bs2JpsiPhi # Specify the import path to where the lines live
+                                          # subdirectories accessed with a "." e.g. b_to_open_charm.b_to_dd
+                                          # NOTE only works with Hlt2 lines - you cannot specify a Hlt1 line at this time.
+    input_files:
+        # HLT1-filtered
+        # Bs2JpsiPhi, 13144011
+        # sim+std://MC/Upgrade/Beam7000GeV-Upgrade-MagDown-Nu7.6-25ns-Pythia8/Sim09c-Up02/Reco-Up01/Trig0x52000000/13144011/LDST
+        - "root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/LDST/00076706/0000/00076706_00000001_1.ldst"
+        - "root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/LDST/00076706/0000/00076706_00000002_1.ldst"
+        - "root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/LDST/00076706/0000/00076706_00000003_1.ldst"
+    simulation: True
+    conddb_tag: 'sim-20171127-vc-md100'
+    dddb_tag: 'dddb-20171126'
+    input_raw_format: 4.3
+    ft_decoding_version: 2
+    run_reconstruction: True
+
+    options:
+        #- $HLTEFFICIENCYCHECKERROOT/options/hlt2_lines_example.py  # Not needed as the "lines_from" is used instead
+        - $HLTEFFICIENCYCHECKERROOT/options/options_template.py.jinja  # first rendered with jinja2
+        # One can also write templated options directly as a multi-line string, for example:
+        # - |
+        #     from Moore import options
+        #     options.ntuple_file = "{{ ntuple_path }}"
+analysis:
+    script: $HLTEFFICIENCYCHECKERROOT/scripts/hlt_line_efficiencies.py
+    args:
+        input: *NTUPLE
+        reconstructible_children: mup,mum,Kp,Km
+        # The parent is automatically deduced from the annotated decay descriptor,
+        # which is passed in a file such as eff_ntuple.root.json, but can also be given:
+        # parent: B_s0
+        legend_header: "B^{0}_{s} #rightarrow J/#Psi#phi"
+        true_signal_to_match_to: "Bs"
+        make_plots: true

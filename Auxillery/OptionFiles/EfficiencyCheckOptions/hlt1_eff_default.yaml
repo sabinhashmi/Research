@@ -1,0 +1,39 @@
+# HltEfficiencyChecker "wizard" example
+annotated_decay_descriptor:
+    "[${B_s0}B_s0 => ( phi(1020) => ${Kplus0}K+ ${Kminus0}K-) ( phi(1020) => ${Kplus1}K+ ${Kminus1}K-) ]CC"
+ntuple_path: &NTUPLE hlt1_eff_ntuple.root
+job:
+    trigger_level: 1
+    evt_max: 100
+    testfiledb_key: Upgrade_BsPhiPhi_MD_FTv4_DIGI
+    ft_decoding_version: 4
+    #
+    # You can also define the input files and/or the processing conditions:
+    #
+    # input_type: ROOT
+    # input_files:
+    #     - "root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/LDST/00070317/0000/00070317_00000033_2.ldst"
+    # simulation: True
+    # conddb_tag: conddb-20301313
+    # dddb_tag: dddb-20301313
+    allen_sequence: hlt1_pp_veloSP
+    options:
+        - $HLTEFFICIENCYCHECKERROOT/options/options_template.py.jinja  # first rendered with jinja2
+        # - $HLTEFFICIENCYCHECKERROOT/options/hlt1_moore_lines_example.py  # Allen lines are specified internally to Allen
+        # One can also write templated options directly as a multi-line string, for example:
+        # - |
+        #     from Moore import options
+        #     options.ntuple_file = "{{ ntuple_path }}"
+analysis:
+    script: $HLTEFFICIENCYCHECKERROOT/scripts/hlt_line_efficiencies.py
+    args:
+        input: *NTUPLE
+        reconstructible_children: Kplus0,Kminus0,Kplus1,Kminus1
+        # The parent is automatically deduced from the annotated decay descriptor,
+        # which is passed in a file such as eff_ntuple.root.json, but can also be given:
+        # parent: B_s0
+        legend_header: "B^{0}_{s} #rightarrow #phi#phi"
+        make_plots: true
+        vars: "PT,Kplus0:PT"
+        lines: Hlt1TwoTrackMVADecision,Hlt1TrackMVADecision
+        true_signal_to_match_to: "B_s0,Kplus0"
